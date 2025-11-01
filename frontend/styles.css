@@ -1,0 +1,20 @@
+/* Tailwind CSS Configuration */
+.zen-blue {
+    color: #3B82F6;
+}
+
+.bg-zen-blue {
+    background-color: #3B82F6;
+}
+
+.bg-zen-blue:hover {
+    background-color: #2563EB;
+}
+
+.focus\:ring-zen-blue:focus {
+    --tw-ring-color: #3B82F6;
+}
+
+.focus\:border-transparent:focus {
+    border-color: transparent;
+}
