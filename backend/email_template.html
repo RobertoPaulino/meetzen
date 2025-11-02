@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td align="center" style="padding:20px;">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;">
+<tr>
+<td style="background-color:#6B46C1;padding:30px;text-align:center;">
+<h1 style="color:#ffffff;margin:0;font-size:24px;">Meeting Invitation</h1>
+</td>
+</tr>
+<tr>
+<td style="padding:30px;">
+<p style="margin:0 0 20px 0;color:#333333;font-size:16px;">Dear <strong>{{RECIPIENT_NAME}}</strong>,</p>
+{{MESSAGE_SECTION}}
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f9f9f9;padding:20px;margin:20px 0;">
+<tr>
+<td>
+<h2 style="margin:0 0 15px 0;color:#333333;font-size:18px;">Meeting Details</h2>
+<p style="margin:8px 0;color:#666666;font-size:14px;"><strong>Title:</strong> {{TITLE}}</p>
+<p style="margin:8px 0;color:#666666;font-size:14px;"><strong>Date &amp; Time:</strong> {{DATETIME}}</p>
+<p style="margin:8px 0;color:#666666;font-size:14px;"><strong>Meeting Link:</strong> <a href="{{MEETING_LINK}}" style="color:#4285F4;text-decoration:none;">Join Meeting</a></p>
+</td>
+</tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td align="center" style="padding:20px 0;">
+<p style="margin:0 0 10px 0;color:#666666;font-size:14px;"><strong>Add to Your Calendar:</strong></p>
+<a href="{{GOOGLE_CAL}}" style="display:inline-block;padding:12px 20px;background-color:#4285F4;color:#ffffff;text-decoration:none;margin:5px;font-size:14px;">Google Calendar</a>
+<a href="{{OUTLOOK_CAL}}" style="display:inline-block;padding:12px 20px;background-color:#0078D4;color:#ffffff;text-decoration:none;margin:5px;font-size:14px;">Outlook</a>
+</td>
+</tr>
+</table>
+<p style="margin:20px 0 0 0;color:#666666;font-size:14px;">Best regards,<br><strong>{{SENDER_NAME}}</strong></p>
+</td>
+</tr>
+<tr>
+<td style="background-color:#f5f5f5;padding:15px;text-align:center;">
+<p style="margin:0;color:#999999;font-size:12px;">Sent via MeetZen</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>
