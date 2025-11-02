@@ -30,6 +30,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/invite", createInvite)
 	log.Println("Server starting on :8080")
+	log.Printf("Template ID: %s", os.Getenv("SENDGRID_TEMPLATE_ID"))
 	http.ListenAndServe(":8080", mux)
 }
 
@@ -76,6 +77,8 @@ func sendEmail(invite InviteRequest, recipient contact) error {
 		return fmt.Errorf("SENDGRID_TEMPLATE_ID not set")
 	}
 
+	log.Printf("Using template ID: %s for recipient: %s", templateID, recipient.Email)
+
 	from := mail.NewEmail("MeetZen", "invite@meetzen.me")
 	to := mail.NewEmail(recipient.Name, recipient.Email)
 
@@ -103,16 +106,19 @@ func sendEmail(invite InviteRequest, recipient contact) error {
 		dynamicData["message"] = invite.Message
 	}
 
+	log.Printf("Dynamic data: %+v", dynamicData)
+
 	personalization.DynamicTemplateData = dynamicData
 	message.AddPersonalizations(personalization)
 
 	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 	response, err := client.Send(message)
 	if err != nil {
+		log.Printf("SendGrid error: %v", err)
 		return err
 	}
 
-	log.Printf("Email sent to %s - Status: %d", recipient.Email, response.StatusCode)
+	log.Printf("Email sent to %s - Status: %d - Body: %s", recipient.Email, response.StatusCode, response.Body)
 	return nil
 }
 
