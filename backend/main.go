@@ -1,37 +1,83 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 type contact struct {
-	Name  string 
-	Email string 
+	Name  string
+	Email string
 }
 
 type InviteRequest struct {
-	Sender      contact   
-	Recipients  []contact 
-	Title       string    
-	DateTime    string    
-	MeetingLink string    
-	Message     string    
+	Sender      contact
+	Recipients  []contact
+	Title       string
+	DateTime    string
+	MeetingLink string
+	Message     string
 }
 
 func main() {
+	// Load environment variables from sendgrid.env
+	loadEnvFile("sendgrid.env")
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/invite", createInvite)
 	log.Println("Server starting on :8080")
 	log.Printf("Template ID: %s", os.Getenv("SENDGRID_TEMPLATE_ID"))
 	http.ListenAndServe(":8080", mux)
+}
+
+func loadEnvFile(filename string) {
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Printf("Warning: Could not open %s: %v", filename, err)
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		// Handle export statements
+		if strings.HasPrefix(line, "export ") {
+			line = strings.TrimPrefix(line, "export ")
+		}
+
+		// Split on first = sign
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 {
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+
+			// Remove surrounding quotes if present
+			if len(value) >= 2 && ((value[0] == '"' && value[len(value)-1] == '"') || (value[0] == '\'' && value[len(value)-1] == '\'')) {
+				value = value[1 : len(value)-1]
+			}
+
+			os.Setenv(key, value)
+			log.Printf("Loaded env var: %s", key)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Printf("Error reading %s: %v", filename, err)
+	}
 }
 
 func createInvite(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +123,7 @@ func sendEmail(invite InviteRequest, recipient contact) error {
 		return fmt.Errorf("SENDGRID_TEMPLATE_ID not set")
 	}
 
-	log.Printf("Using template ID: %s for recipient: %s", templateID, recipient.Email)
+	log.Printf("Sending email to %s using template ID: %s", recipient.Email, templateID)
 
 	from := mail.NewEmail("MeetZen", "invite@meetzen.me")
 	to := mail.NewEmail(recipient.Name, recipient.Email)
@@ -106,19 +152,27 @@ func sendEmail(invite InviteRequest, recipient contact) error {
 		dynamicData["message"] = invite.Message
 	}
 
-	log.Printf("Dynamic data: %+v", dynamicData)
+	log.Printf("Dynamic template data for %s: %+v", recipient.Email, dynamicData)
 
 	personalization.DynamicTemplateData = dynamicData
 	message.AddPersonalizations(personalization)
 
+	log.Printf("Sending email via SendGrid to %s with template %s", recipient.Email, templateID)
+
 	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 	response, err := client.Send(message)
 	if err != nil {
-		log.Printf("SendGrid error: %v", err)
+		log.Printf("SendGrid API error for %s: %v", recipient.Email, err)
 		return err
 	}
 
-	log.Printf("Email sent to %s - Status: %d - Body: %s", recipient.Email, response.StatusCode, response.Body)
+	log.Printf("SendGrid response for %s - Status: %d - Body: %s", recipient.Email, response.StatusCode, response.Body)
+
+	if response.StatusCode >= 200 && response.StatusCode < 300 {
+		log.Printf("✅ Email successfully sent to %s using template %s", recipient.Email, templateID)
+	} else {
+		log.Printf("⚠️ Email sending may have failed for %s - Status: %d", recipient.Email, response.StatusCode)
+	}
 	return nil
 }
 
